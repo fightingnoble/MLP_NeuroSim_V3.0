@@ -3,22 +3,22 @@
 * School of Electrical, Computer and Energy Engineering, Arizona State University
 * PI: Prof. Shimeng Yu
 * All rights reserved.
-*   
-* This source code is part of NeuroSim - a device-circuit-algorithm framework to benchmark 
-* neuro-inspired architectures with synaptic devices(e.g., SRAM and emerging non-volatile memory). 
-* Copyright of the model is maintained by the developers, and the model is distributed under 
-* the terms of the Creative Commons Attribution-NonCommercial 4.0 International Public License 
+*
+* This source code is part of NeuroSim - a device-circuit-algorithm framework to benchmark
+* neuro-inspired architectures with synaptic devices(e.g., SRAM and emerging non-volatile memory).
+* Copyright of the model is maintained by the developers, and the model is distributed under
+* the terms of the Creative Commons Attribution-NonCommercial 4.0 International Public License
 * http://creativecommons.org/licenses/by-nc/4.0/legalcode.
 * The source code is free and you can redistribute and/or modify it
 * by providing that the following conditions are met:
-*   
+*
 *  1) Redistributions of source code must retain the above copyright notice,
-*     this list of conditions and the following disclaimer. 
-*   
+*     this list of conditions and the following disclaimer.
+*
 *  2) Redistributions in binary form must reproduce the above copyright notice,
 *     this list of conditions and the following disclaimer in the documentation
 *     and/or other materials provided with the distribution.
-*   
+*
 * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -29,10 +29,10 @@
 * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-* 
-* Developer list: 
-*   Pai-Yu Chen     Email: pchen72 at asu dot edu 
-*                     
+*
+* Developer list:
+*   Pai-Yu Chen     Email: pchen72 at asu dot edu
+*
 *   Xiaochen Peng   Email: xpeng15 at asu dot edu
 ********************************************************************************/
 
@@ -48,7 +48,7 @@ public:
 	/* MNIST dataset */
 	int numMnistTrainImages;// # of training images in MNIST
 	int numMnistTestImages;	// # of testing images in MNIST
-	
+
 	/* Algorithm parameters */
 	int numTrainImagesPerEpoch;	// # of training images per epoch
 	int totalNumEpochs;	// Total number of epochs
@@ -60,7 +60,7 @@ public:
 	double alpha2;		// Learning rate for the synapses from hidden to output layer
 	double maxWeight;	// Upper bound of weight value
 	double minWeight;	// Lower bound of weight value
-    char* optimization_type;
+    char optimization_type[20];//modify_5-5
 
 	/* Hardware parameters */
 	bool useHardwareInTrainingFF;   // Use hardware in the feed forward part of training or not (true: realistic hardware, false: ideal software)
@@ -86,3 +86,7 @@ public:
 };
 
 #endif
+
+//modify tag: modify_5-5
+//fix debug mode can't match optimization method
+//change optimization_type from pointer to array and match pattern from address to charater compare

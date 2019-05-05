@@ -3,22 +3,22 @@
 * School of Electrical, Computer and Energy Engineering, Arizona State University
 * PI: Prof. Shimeng Yu
 * All rights reserved.
-*   
-* This source code is part of NeuroSim - a device-circuit-algorithm framework to benchmark 
-* neuro-inspired architectures with synaptic devices(e.g., SRAM and emerging non-volatile memory). 
-* Copyright of the model is maintained by the developers, and the model is distributed under 
-* the terms of the Creative Commons Attribution-NonCommercial 4.0 International Public License 
+*
+* This source code is part of NeuroSim - a device-circuit-algorithm framework to benchmark
+* neuro-inspired architectures with synaptic devices(e.g., SRAM and emerging non-volatile memory).
+* Copyright of the model is maintained by the developers, and the model is distributed under
+* the terms of the Creative Commons Attribution-NonCommercial 4.0 International Public License
 * http://creativecommons.org/licenses/by-nc/4.0/legalcode.
 * The source code is free and you can redistribute and/or modify it
 * by providing that the following conditions are met:
-*   
+*
 *  1) Redistributions of source code must retain the above copyright notice,
-*     this list of conditions and the following disclaimer. 
-*   
+*     this list of conditions and the following disclaimer.
+*
 *  2) Redistributions in binary form must reproduce the above copyright notice,
 *     this list of conditions and the following disclaimer in the documentation
 *     and/or other materials provided with the distribution.
-*   
+*
 * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
 * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -29,10 +29,10 @@
 * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-* 
-* Developer list: 
-*   Pai-Yu Chen     Email: pchen72 at asu dot edu 
-*                     
+*
+* Developer list:
+*   Pai-Yu Chen     Email: pchen72 at asu dot edu
+*
 *   Xiaochen Peng   Email: xpeng15 at asu dot edu
 ********************************************************************************/
 
@@ -41,7 +41,9 @@
 #include <vector>
 #include <random>
 #include <string>
-#include "formula.h"
+#include <cstdio>
+#include <string.h>
+#include "formula_main.h"
 #include "Param.h"
 #include "Array.h"
 #include "Mapping.h"
@@ -93,7 +95,7 @@ extern double totalNumPulse=0;// track the total number of pulse for the weight 
 /*Optimization functions*/
 double gradt;
 double GAMA=0.9;
-double BETA1= 0.1, BETA2=0.7; 
+double BETA1= 0.1, BETA2=0.7;
 double SGD(double gradient, double learning_rate);
 double Momentum(double gradient, double learning_rate, double momentumPrev, double GAMA=0.1);
 double Adagrad(double gradient, double learning_rate, double gradSquare, double EPSILON=1E-1);
@@ -114,7 +116,7 @@ double a2[param->nOutput];  // Net output of output layer [param->nOutput]
 
 double s1[param->nHide];    // Output delta from input layer to the hidden layer [param->nHide]
 double s2[param->nOutput];  // Output delta from hidden layer to the output layer [param->nOutput]
-	
+
 	for (int t = 0; t < epochs; t++) {
 		for (int batchSize = 0; batchSize < numTrain; batchSize++) {
 
@@ -126,7 +128,7 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
 			std::fill_n(a1, param->nHide, 0);
         if (param->useHardwareInTrainingFF) {   // Hardware
 				double sumArrayReadEnergy = 0;   // Use a temporary variable here since OpenMP does not support reduction on class member
-                double readVoltage; 
+                double readVoltage;
                 double readPulseWidth;
 
            if(AnalogNVM *temp = dynamic_cast<AnalogNVM*>(arrayIH->cell[0][0]))
@@ -148,14 +150,14 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
 							sumArrayReadEnergy += arrayIH->wireCapRow * techIH.vdd * techIH.vdd * (param->nInput - 1);  // Unselected WLs
 						}
 					}
-                    
+
 					for (int n=0; n<param->numBitInput; n++) {
 						double pSumMaxAlgorithm = pow(2, n) / (param->numInputLevel - 1) * arrayIH->arrayRowSize;  // Max algorithm partial weighted sum for the nth vector bit (if both max input value and max weight are 1)
 						if (AnalogNVM *temp = dynamic_cast<AnalogNVM*>(arrayIH->cell[0][0])) {  // Analog eNVM
                             //printf("calculating the current sum\n");
 							double Isum = 0;    // weighted sum current
 							double IsumMax = 0; // Max weighted sum current
-              double IsumMin = 0; 
+              double IsumMin = 0;
 							double inputSum = 0;    // Weighted sum current of input vector * weight=1 column
 							for (int k=0; k<param->nInput; k++) {
 								if ((dInput[i][k]>>n) & 1) {    // if the nth bit of dInput[i][k] is 1
@@ -167,16 +169,16 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
                 IsumMin += arrayIH->GetMinCellReadCurrent(j,k);
 							}
 							sumArrayReadEnergy += Isum * readVoltage * readPulseWidth;
-							int outputDigits = 2*(CurrentToDigits(Isum, IsumMax-IsumMin)-CurrentToDigits(inputSum, IsumMax-IsumMin));   
+							int outputDigits = 2*(CurrentToDigits(Isum, IsumMax-IsumMin)-CurrentToDigits(inputSum, IsumMax-IsumMin));
                             outN1[j] += DigitsToAlgorithm(outputDigits, pSumMaxAlgorithm);
 						}
-                        else 
+                        else
                         {    // SRAM or digital eNVM
-                            bool digitalNVM = false; 
+                            bool digitalNVM = false;
                             bool parallelRead = false;
                             if(DigitalNVM*temp = dynamic_cast<DigitalNVM*>(arrayIH->cell[0][0]))
                             {    digitalNVM = true;
-                                if(static_cast<DigitalNVM*>(arrayIH->cell[0][0])->parallelRead == true) 
+                                if(static_cast<DigitalNVM*>(arrayIH->cell[0][0])->parallelRead == true)
 								{
                                     parallelRead = true;
                                 }
@@ -194,7 +196,7 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
                                     int Dref = 0;
                                     for (int w=0;w<param->numWeightBit;w++){
                                         int colIndex = (j+1) * param->numWeightBit - (w+1);  // w=0 is the LSB
-									    for (int k=0; k<param->nInput; k++) 
+									    for (int k=0; k<param->nInput; k++)
                                         {
 										    if((dInput[i][k]>>n) & 1){ // accumulate the current along a column
 											    Isum += static_cast<DigitalNVM*>(arrayIH->cell[colIndex][k])->conductance*static_cast<DigitalNVM*>(arrayIH->cell[colIndex ][k])->readVoltage;
@@ -202,10 +204,10 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
 										    }
 									    }
 
-                                        int outputDigits = (int) (Isum /(Imax-Imin)); // the output at the ADC of this column // basically, this is the number of "1" in the partial sum of this column                                                                                                               
+                                        int outputDigits = (int) (Isum /(Imax-Imin)); // the output at the ADC of this column // basically, this is the number of "1" in the partial sum of this column
                                         int outputDigitsRef = (int) (inputSum/(Imax-Imin));
                                         outputDigits = outputDigits-outputDigitsRef;
-                                        
+
                                         Dref = (int)(inputSum/Imin);
                                         Isum=0;
                                         inputSum=0;
@@ -216,7 +218,7 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
                                     outN1[j] += (double)(Dsum - Dref*(pow(2,param->numWeightBit-1)-1)) / DsumMax * pSumMaxAlgorithm;
                             }
                             else
-                            {	 // Digital NVM or SRAM row-by-row readout				
+                            {	 // Digital NVM or SRAM row-by-row readout
 							    int Dsum = 0;
 							    int DsumMax = 0;
 							    int inputSum = 0;
@@ -229,7 +231,7 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
 							    }
 							    if (DigitalNVM *temp = dynamic_cast<DigitalNVM*>(arrayIH->cell[0][0])) {    // Digital eNVM
 								    sumArrayReadEnergy += static_cast<DigitalNVM*>(arrayIH->cell[0][0])->readEnergy * arrayIH->numCellPerSynapse * arrayIH->arrayRowSize;
-							    } 
+							    }
                                 else {    // SRAM
 								    sumArrayReadEnergy += static_cast<SRAM*>(arrayIH->cell[0][0])->readEnergy * arrayIH->numCellPerSynapse * arrayIH->arrayRowSize;
 							    }
@@ -259,7 +261,7 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
 					subArrayIH->readLatency += NeuroSimSubArrayReadLatency(subArrayIH);
 					subArrayIH->readLatency += NeuroSimNeuronReadLatency(subArrayIH, adderIH, muxIH, muxDecoderIH, dffIH, subtractorIH);
 				}
-        } 
+        }
         else {    // Algorithm
 				#pragma omp parallel for
 				for (int j = 0; j < param->nHide; j++) {
@@ -295,34 +297,34 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
 							sumArrayReadEnergy += arrayHO->wireCapRow * techHO.vdd * techHO.vdd * (param->nHide - 1);   // Unselected WLs
 						}
 					}
-                    
+
 					for (int n=0; n<param->numBitInput; n++) {
 						double pSumMaxAlgorithm = pow(2, n) / (param->numInputLevel - 1) * arrayHO->arrayRowSize;    // Max algorithm partial weighted sum for the nth vector bit (if both max input value and max weight are 1)
 						if (AnalogNVM *temp = dynamic_cast<AnalogNVM*>(arrayHO->cell[0][0])) {  // Analog eNVM
 							double Isum = 0;    // weighted sum current
 							double IsumMax = 0; // Max weighted sum current
-              double IsumMin = 0; 
-							double a1Sum = 0;    // Weighted sum current of input vector * weight=1 column                            
+              double IsumMin = 0;
+							double a1Sum = 0;    // Weighted sum current of input vector * weight=1 column
 							for (int k=0; k<param->nHide; k++) {
-								if ((da1[k]>>n) & 1) {    // if the nth bit of da1[k] is 1  
+								if ((da1[k]>>n) & 1) {    // if the nth bit of da1[k] is 1
 							 		Isum += arrayHO->ReadCell(j,k);
                                     a1Sum +=arrayHO->GetMediumCellReadCurrent(j,k);
-                                    sumArrayReadEnergy += arrayHO->wireCapRow * readVoltage * readVoltage; // Selected BLs (1T1R) or Selected WLs (cross-point)								                                  
+                                    sumArrayReadEnergy += arrayHO->wireCapRow * readVoltage * readVoltage; // Selected BLs (1T1R) or Selected WLs (cross-point)
                                 }
                                 IsumMax += arrayHO->GetMaxCellReadCurrent(j,k);
                                 IsumMin += arrayHO->GetMinCellReadCurrent(j,k);
 							}
 							sumArrayReadEnergy += Isum * readVoltage * readPulseWidth;
 							int outputDigits = 2*(CurrentToDigits(Isum, IsumMax-IsumMin)-CurrentToDigits(a1Sum, IsumMax-IsumMin)); //minus the reference
-							outN2[j] += DigitsToAlgorithm(outputDigits, pSumMaxAlgorithm);     
-						} 
-                        else 
+							outN2[j] += DigitsToAlgorithm(outputDigits, pSumMaxAlgorithm);
+						}
+                        else
                         {// SRAM or digital eNVM
-                            bool digitalNVM = false; 
+                            bool digitalNVM = false;
                             bool parallelRead = false;
                             if(DigitalNVM*temp = dynamic_cast<DigitalNVM*>(arrayHO->cell[0][0]))
                             {    digitalNVM = true;
-                                if(static_cast<DigitalNVM*>(arrayHO->cell[0][0])->parallelRead == true) 
+                                if(static_cast<DigitalNVM*>(arrayHO->cell[0][0])->parallelRead == true)
 								{
                                     parallelRead = true;
                                 }
@@ -342,24 +344,24 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
                                     for (int k=0; k<param->nHide; k++) {
                                         if ((da1[k]>>n) & 1) { // accumulate the current along a column
                                             Isum += static_cast<DigitalNVM*>(arrayHO->cell[colIndex][k])->conductance*static_cast<DigitalNVM*>(arrayHO->cell[colIndex][k])->readVoltage;
-                                            inputSum += static_cast<DigitalNVM*>(arrayHO->cell[arrayHO->refColumnNumber][k])->conductance*static_cast<DigitalNVM*>(arrayHO->cell[arrayHO->refColumnNumber][k])->readVoltage;                                            
+                                            inputSum += static_cast<DigitalNVM*>(arrayHO->cell[arrayHO->refColumnNumber][k])->conductance*static_cast<DigitalNVM*>(arrayHO->cell[arrayHO->refColumnNumber][k])->readVoltage;
                                         }
                                     }
                                         int outputDigits = (int) (Isum /(Imax-Imin));
                                         int outputDigitsRef = (int) (inputSum/(Imax-Imin));
                                         outputDigits = outputDigits-outputDigitsRef;
-                                            
+
                                     Dref = (int)(inputSum/Imin);
                                     Isum=0;
                                     inputSum=0;
                                     Dsum += outputDigits*(int) pow(2,w);  // get the weight represented by the column
-                                    DsumMax += param->nHide*(int) pow(2,w); // the maximum weight that can be represented by this column                                        
+                                    DsumMax += param->nHide*(int) pow(2,w); // the maximum weight that can be represented by this column
                                 }
                                 sumArrayReadEnergy += static_cast<DigitalNVM*>(arrayHO->cell[0][0])->readEnergy * arrayHO->numCellPerSynapse * arrayHO->arrayRowSize;
                                 outN2[j] += (double)(Dsum - Dref*(pow(2,param->numWeightBit-1)-1)) / DsumMax * pSumMaxAlgorithm;
                             }
                             else
-                            {                            
+                            {
 							    int Dsum = 0;
 							    int DsumMax = 0;
 							    int a1Sum = 0;
@@ -369,10 +371,10 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
 									    a1Sum += pow(2, arrayHO->numCellPerSynapse-1) - 1;    // get current of Dummy Column as reference
 								    }
 								    DsumMax += pow(2, arrayHO->numCellPerSynapse) - 1;
-							    } 
+							    }
 							    if (DigitalNVM *temp = dynamic_cast<DigitalNVM*>(arrayHO->cell[0][0])) {    // Digital eNVM
 								    sumArrayReadEnergy += static_cast<DigitalNVM*>(arrayHO->cell[0][0])->readEnergy * arrayHO->numCellPerSynapse * arrayHO->arrayRowSize;
-							    } 
+							    }
                                 else {
 								    sumArrayReadEnergy += static_cast<SRAM*>(arrayHO->cell[0][0])->readEnergy * arrayHO->numCellPerSynapse * arrayHO->arrayRowSize;
 							    }
@@ -457,22 +459,22 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
 						double maxLatencyLTP = 0;	// Max latency for AnalogNVM's LTP or weight increase in this batch write
 						double maxLatencyLTD = 0;	// Max latency for AnalogNVM's LTD or weight decrease in this batch write
 						bool weightChangeBatch = false;	// Specify if there is any weight change in the entire write batch
-                        
+
                         double maxWeightUpdated=0;
                         double maxPulseNum =0;
                         double actualWeightUpdated;
+
                         for (int jj = start; jj <= end; jj++) { // Selected cells
-						
 							// update weight matrix
                             /*can support multiple optimization algorithm*/
                             gradt = s1[jj] * Input[i][k];
                             gradSum1[jj][k] += gradt; // sum over the gradient over all the training samples in this batch
-                            if (optimization_type == "SGD"){
-                                deltaWeight1[jj][k] = SGD(gradt, param->alpha1);                        
-                             }   
-                            else if(optimization_type=="Momentum")
+                            if (strcmp(optimization_type , "SGD")){
+                                deltaWeight1[jj][k] = SGD(gradt, param->alpha1);
+                             }
+                            else if (strcmp(optimization_type,"Momentum"))
                             {
-                                deltaWeight1[jj][k] = SGD(gradt, param->alpha1); // only add momentum once every batch                       
+                                deltaWeight1[jj][k] = SGD(gradt, param->alpha1); // only add momentum once every batch
                                 if (batchSize % numTrain == 0)
                                 {
                                     deltaWeight1[jj][k] = Momentum(gradt, param->alpha1,momentumPrev1[jj][k]);
@@ -480,7 +482,7 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
                                     gradSum1[jj][k] = 0;
                                 }
                             }
-                            else if(optimization_type=="Adagrad")
+                            else if (strcmp(optimization_type,"Adagrad"))
                             {
                                    deltaWeight1[jj][k] = Adagrad(gradt, param->alpha1, gradSquarePrev1[jj][k]);
                                    if (batchSize % numTrain == 0)
@@ -489,15 +491,15 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
                                       gradSum1[jj][k] = 0;
                                    }
                             }
-                            else if(optimization_type=="RMSprop")
+                            else if(strcmp(optimization_type,"RMSprop"))
                             {
                                 deltaWeight1[jj][k] = RMSprop(gradt, param->alpha1, gradSquarePrev1[jj][k]);
                                 if (batchSize % numTrain == 0){
                                     gradSquarePrev1[jj][k] = GAMA*gradSquarePrev1[jj][k]+(1-GAMA)*pow(gradSum1[jj][k], 2);
                                     gradSum1[jj][k] = 0;
+                                }
                             }
-                        }
-                            else if(optimization_type == "Adam")
+                            else if(strcmp(optimization_type,"Adam"))
                             {
                                 deltaWeight1[jj][k] = Adam(gradt, param->alpha1, 0, gradSquarePrev1[jj][k]); //only add momentum once
                                 if (batchSize % numTrain == 0){
@@ -505,10 +507,10 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
                                 momentumPrev1[jj][k] = BETA1*momentumPrev1[jj][k]+(1-BETA1)*gradSum1[jj][k];
                                 gradSquarePrev1[jj][k] = BETA2*gradSquarePrev1[jj][k]+(1-BETA2)*pow(gradSum1[jj][k], 2);
                                 gradSum1[jj][k] = 0;
-                            } 
-                        }
-                        else std::cout<<"please specify an optimization method" <<end;
-                    
+                                }
+                            }
+                            else std::cout<<"please specify an optimization method" <<end;
+
                            /* tracking code */
                            /*
                             totalDeltaWeight1[jj][k] += deltaWeight1[jj][k];
@@ -516,23 +518,23 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
                             // find the actual weight update
                             if(deltaWeight1[jj][k]+weight1[jj][k] > param-> maxWeight)
                             {
-                                actualWeightUpdated=param->maxWeight - weight1[jj][k];    
+                                actualWeightUpdated=param->maxWeight - weight1[jj][k];
                             }
                             else if(deltaWeight1[jj][k]+weight1[jj][k] < param->minWeight)
                             {
                                 actualWeightUpdated=param->minWeight - weight1[jj][k];
-                            } 
+                            }
                             else actualWeightUpdated=deltaWeight1[jj][k];
-                            
+
                             if(fabs(actualWeightUpdated)>maxWeightUpdated)
                             {
                                 maxWeightUpdated =fabs(actualWeightUpdated);
                             }
                             */
-                            
+
 							if (AnalogNVM *temp = dynamic_cast<AnalogNVM*>(arrayIH->cell[jj][k])) {	// Analog eNVM
 							    arrayIH->WriteCell(jj, k, deltaWeight1[jj][k], weight1[jj][k], param->maxWeight, param->minWeight, true);
-							    weight1[jj][k] = arrayIH->ConductanceToWeight(jj, k, param->maxWeight, param->minWeight); 
+							    weight1[jj][k] = arrayIH->ConductanceToWeight(jj, k, param->maxWeight, param->minWeight);
                                 weightChangeBatch = weightChangeBatch || static_cast<AnalogNVM*>(arrayIH->cell[jj][k])->numPulse;
                                 if(fabs(static_cast<AnalogNVM*>(arrayIH->cell[jj][k])->numPulse) > maxPulseNum)
                                 {
@@ -543,20 +545,20 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
 									maxLatencyLTP = static_cast<AnalogNVM*>(arrayIH->cell[jj][k])->writeLatencyLTP;
 								if (static_cast<AnalogNVM*>(arrayIH->cell[jj][k])->writeLatencyLTD > maxLatencyLTD)
 									maxLatencyLTD = static_cast<AnalogNVM*>(arrayIH->cell[jj][k])->writeLatencyLTD;
-							}							
-       
+							}
+
                             else {	// SRAM and digital eNVM
                                 weight1[jj][k] = weight1[jj][k] + deltaWeight1[jj][k];
 								arrayIH->WriteCell(jj, k, deltaWeight1[jj][k], weight1[jj][k], param->maxWeight, param->minWeight, true);
 								weightChangeBatch = weightChangeBatch || arrayIH->weightChange[jj][k];
 							}
-							
+
 						}
                         // update the track variables
                         /*
                         totalWeightUpdate += maxWeightUpdated;
                         totalNumPulse += maxPulseNum; */
-                        
+
 						numWriteOperationPerRow += weightChangeBatch;
 						for (int jj = start; jj <= end; jj++) { // Selected cells
 							if (AnalogNVM *temp = dynamic_cast<AnalogNVM*>(arrayIH->cell[0][0])) {  // Analog eNVM
@@ -577,9 +579,9 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
 										}
 									}
 									static_cast<AnalogNVM*>(arrayIH->cell[jj][k])->WriteEnergyCalculation(arrayIH->wireCapCol);
-									sumArrayWriteEnergy += static_cast<AnalogNVM*>(arrayIH->cell[jj][k])->writeEnergy; 
+									sumArrayWriteEnergy += static_cast<AnalogNVM*>(arrayIH->cell[jj][k])->writeEnergy;
 								}
-							} 
+							}
                             else if (DigitalNVM *temp = dynamic_cast<DigitalNVM*>(arrayIH->cell[0][0])) { // Digital eNVM
 								if (param->writeEnergyReport && arrayIH->weightChange[jj][k]) {
 									for (int n=0; n<arrayIH->numCellPerSynapse; n++) {  // n=0 is LSB
@@ -597,7 +599,7 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
 								}
 							}
 						}
-                        
+
 						/* Latency for each batch write in Analog eNVM */
 						if (AnalogNVM *temp = dynamic_cast<AnalogNVM*>(arrayIH->cell[0][0])) {	// Analog eNVM
 							sumWriteLatencyAnalogNVM += maxLatencyLTP + maxLatencyLTD;
@@ -737,7 +739,7 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
                 double writeVoltageLTP;
                 double writeVoltageLTD;
                 double writePulseWidthLTP;
-                double writePulseWidthLTD;				
+                double writePulseWidthLTD;
                 if(eNVM *temp = dynamic_cast<eNVM*>(arrayHO->cell[0][0])){
                      writeVoltageLTP = static_cast<eNVM*>(arrayHO->cell[0][0])->writeVoltageLTP;
 				     writeVoltageLTD = static_cast<eNVM*>(arrayHO->cell[0][0])->writeVoltageLTD;
@@ -759,7 +761,7 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
 						double maxLatencyLTP = 0;   // Max latency for AnalogNVM's LTP or weight increase in this batch write
 						double maxLatencyLTD = 0;   // Max latency for AnalogNVM's LTD or weight decrease in this batch write
 						bool weightChangeBatch = false; // Specify if there is any weight change in the entire write batch
-                        
+
                         double maxWeightUpdated=0;
                         double maxPulseNum =0;
                         double actualWeightUpdated=0;
@@ -767,18 +769,18 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
 
                             gradt = s2[jj] * a1[k];
                             gradSum2[jj][k] += gradt; // sum over the gradient over all the training samples in this batch
-                         if (optimization_type == "SGD") 
-                            deltaWeight2[jj][k] = SGD(gradt, param->alpha2);                        
-                            else if(optimization_type=="Momentum")
+                         if (strcmp(optimization_type,"SGD"))
+                            deltaWeight2[jj][k] = SGD(gradt, param->alpha2);
+                            else if(strcmp(optimization_type,"Momentum"))
                                     {
-                                        deltaWeight2[jj][k] = SGD(gradt, param->alpha2);                        
-                                        if (batchSize % numTrain == 0){                                            
+                                        deltaWeight2[jj][k] = SGD(gradt, param->alpha2);
+                                        if (batchSize % numTrain == 0){
                                             deltaWeight2[jj][k] = Momentum(gradt, param->alpha2,momentumPrev2[jj][k]);
                                             momentumPrev2[jj][k] = GAMA*momentumPrev2[jj][k]+param->alpha2*gradSum2[jj][k];
                                             gradSum2[jj][k] = 0;
                                         }
                                     }
-                            else if(optimization_type=="Adagrad")
+                            else if(strcmp(optimization_type,"Adagrad"))
                                     {
                                         deltaWeight2[jj][k] = Adagrad(gradt, param->alpha2, gradSquarePrev2[jj][k]);
                                         if (batchSize % numTrain == 0){
@@ -786,7 +788,7 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
                                             gradSum2[jj][k] = 0;
                                         }
                                     }
-                            else if(optimization_type=="RMSprop")
+                            else if(strcmp(optimization_type,"RMSprop"))
                                     {
                                         deltaWeight2[jj][k] = RMSprop(gradt, param->alpha2, gradSquarePrev2[jj][k]);
                                         if (batchSize % numTrain == 0){
@@ -794,7 +796,7 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
                                             gradSum2[jj][k] = 0;
                                         }
                                     }
-                            else if(optimization_type == "Adam")
+                            else if(strcmp(optimization_type,"Adam"))
                                    {
                                         deltaWeight2[jj][k] = Adam(gradt, param->alpha2, 0, gradSquarePrev2[jj][k]);
 
@@ -803,7 +805,7 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
                                             momentumPrev2[jj][k] = BETA1*momentumPrev2[jj][k]+(1-BETA1)*gradSum2[jj][k];
                                             gradSquarePrev2[jj][k] = BETA2*gradSquarePrev2[jj][k]+(1-BETA2)*pow(gradSum2[jj][k], 2);
                                             gradSum2[jj][k] = 0;
-                                        } 
+                                        }
                                   }
                             else std::cout<<"please specify an optimization method" <<end;
 
@@ -813,32 +815,32 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
                             totalDeltaWeight2[jj][k] += deltaWeight2[jj][k];
                             totalDeltaWeight2_abs[jj][k] += fabs(deltaWeight2[jj][k]);
                             */
-                          
+
                             /* track the number of weight update*/
                             /*// find the actual weight update
                             if(deltaWeight2[jj][k]+weight2[jj][k] > param-> maxWeight)
                             {
-                                actualWeightUpdated=param->maxWeight - weight2[jj][k];    
+                                actualWeightUpdated=param->maxWeight - weight2[jj][k];
                             }
                             else if(deltaWeight2[jj][k]+weight2[jj][k] < param->minWeight)
                             {
                                 actualWeightUpdated=param->minWeight - weight2[jj][k];
-                            } 
-                            else actualWeightUpdated=deltaWeight2[jj][k]; 
-                            
+                            }
+                            else actualWeightUpdated=deltaWeight2[jj][k];
+
                             //if( fabs(deltaWeight1[jj][k]) > maxWeightUpdated )
                             if(fabs(actualWeightUpdated)>maxWeightUpdated)
                             {
                                 maxWeightUpdated =fabs(actualWeightUpdated);
                                 // maxWeightUpdated =fabs(deltaWeight2[jj][k]);
                             } */
-                            
+
                          /*   if( fabs(deltaWeight2[jj][k]) > maxWeightUpdated )
                             {
                                 maxWeightUpdated =fabs(deltaWeight2[jj][k]);
                             }
-                        */			
-				
+                        */
+
 							if (AnalogNVM *temp = dynamic_cast<AnalogNVM*>(arrayHO->cell[jj][k])) { // Analog eNVM
                                 arrayHO->WriteCell(jj, k, deltaWeight2[jj][k], weight2[jj][k], param->maxWeight, param->minWeight, true);
 							    weight2[jj][k] = arrayHO->ConductanceToWeight(jj, k, param->maxWeight, param->minWeight);
@@ -858,11 +860,11 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
 								arrayHO->WriteCell(jj, k, deltaWeight2[jj][k], weight2[jj][k], param->maxWeight, param->minWeight, true);
 								weightChangeBatch = weightChangeBatch || arrayHO->weightChange[jj][k];
 							}
-							
+
 						}
                         totalWeightUpdate += maxWeightUpdated;
                         totalNumPulse += maxPulseNum;
-                        
+
                         /* Latency for each batch write in Analog eNVM */
 						numWriteOperationPerRow += weightChangeBatch;
 						for (int jj = start; jj <= end; jj++) { // Selected cells
@@ -1037,11 +1039,11 @@ double s2[param->nOutput];  // Output delta from hidden layer to the output laye
 }
 
 double SGD(double gradient, double learning_rate){
-    return -learning_rate * gradient; 
+    return -learning_rate * gradient;
 }
 
 double Momentum(double gradient, double learning_rate, double momentumPrev, double GAMA){
-    double momentumNow; 
+    double momentumNow;
     momentumNow = GAMA*momentumPrev + learning_rate*gradient;
     return -momentumNow;
 }
@@ -1064,3 +1066,7 @@ double Adam(double gradient, double learning_rate, double momentumPrev, double v
     vt = vt/(1-BETA2);
     return -learning_rate*mt/(sqrt(vt)+EPSILON);
 }
+
+//modify tag: modify_5-5
+//fix debug mode can't match optimization method
+//change optimization_type from pointer to array and match pattern from address to charater compare
